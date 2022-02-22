@@ -6,11 +6,43 @@
 //
 
 import SwiftUI
+import HealthKit
+
+func fetchHealthData() -> Void
+{
+    let HKStore = HKHealthStore()
+    
+    if HKHealthStore.isHealthDataAvailable()
+    {
+        let stolenData = Set([
+            HKObjectType.quantityType(forIdentifier: .heartRate)!,
+            HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!,
+            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!])
+        HKStore.requestAuthorization(toShare: [], read: stolenData) {(success, error) in
+            if success
+            {
+                
+            }
+            else
+            {
+                print("Unauthorized!")
+            }
+        }
+    }
+    else
+    {
+        print("ERROR: Unable to fetch data!")
+    }
+}
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        Button(action: fetchHealthData) {
+            Text("Pull data")
+                .font(.largeTitle)
+                .bold()
+                .padding()
+        }
     }
 }
 
