@@ -115,13 +115,15 @@ struct InnerView: View
         }
         .frame(width: 200.0, height: 35.0)
         .background(Color.cyan)
+        //.opacity(0.8)
         .cornerRadius(25)
         Button("Push data to SimtoonAPI")
         {
             
         }
         .frame(width: 200, height: 35)
-        .background(Color.green)
+        //.background(Color.green)
+        .opacity(0.5)
         .cornerRadius(5)
         .disabled(true)
     }
@@ -136,6 +138,7 @@ struct ContentView: View {
                 .font(.headline)
                 .bold()
                 .padding()
+                .foregroundColor(Color.cyan)
             InnerView(score: score)
         }
     }
@@ -146,6 +149,7 @@ struct ContentView_Previews: PreviewProvider
     static var previews: some View
     {
         ContentView()
+            .preferredColorScheme(.dark)
             .previewDevice(PreviewDevice(rawValue: "iPhone 12"))
     }
 }
