@@ -12,7 +12,8 @@ class ExistenceScore: ObservableObject
     @Published var heartAvg = 0.0
 }
 
-var heartCount = 0
+var valHR = 0.0
+var heartCount = 0.0
 
 func fetchHealthData() -> Void
 {
@@ -48,7 +49,7 @@ func fetchHealthData() -> Void
                         }
                 
                 let interval = NSDateComponents()
-                interval.hour = 12
+                interval.hour = 6
                 
                 guard let quantityType = HKObjectType.quantityType(forIdentifier: .heartRate)
                 else
@@ -73,12 +74,10 @@ func fetchHealthData() -> Void
                         {
                             let date = statistics.startDate
                             let val = quantity.doubleValue(for: HKUnit(from: "count/min"))
-                            print("should be done")
                             print(val)
                             print(date)
-                            @StateObject var score = ExistenceScore()
-                            score.heartAvg = score.heartAvg + val
-                            heartCount += 1
+                            valHR = valHR + val
+                            heartCount += 1.0
                         }
                     }
                     
@@ -97,21 +96,56 @@ func fetchHealthData() -> Void
     }
 }
 
-struct ContentView: View {
-    @StateObject var score = ExistenceScore()
-    var body: some View {
-        Button(action: fetchHealthData) {
-            Text("Pull data")
-                .font(.largeTitle)
-                .bold()
-                .padding()
+func pushToSimtoonAPI() -> Void
+{
+    // PUSH TO SIMTOON API
+}
+
+struct InnerView: View
+{
+    @ObservedObject var score: ExistenceScore
+    
+    var body: some View
+    {
+        Button("Pull HealthKit data")
+        {
+            fetchHealthData()
+            score.heartAvg = valHR/heartCount
+            Spacer(minLength: 10.0)
         }
-        Text(String(score.heartAvg))
+        .frame(width: 200.0, height: 35.0)
+        .background(Color.cyan)
+        .cornerRadius(25)
+        Button("Push data to SimtoonAPI")
+        {
+            
+        }
+        .frame(width: 200, height: 35)
+        .background(Color.green)
+        .cornerRadius(5)
+        .disabled(true)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
+struct ContentView: View {
+    @StateObject var score = ExistenceScore()
+    var body: some View {
+        VStack()
+        {
+            Text("Your average HR in the past 30 days taken in 6-hour intervals is " + String(format: "%.1f", score.heartAvg) + " BPM")
+                .font(.headline)
+                .bold()
+                .padding()
+            InnerView(score: score)
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider
+{
+    static var previews: some View
+    {
         ContentView()
+            .previewDevice(PreviewDevice(rawValue: "iPhone 12"))
     }
 }
