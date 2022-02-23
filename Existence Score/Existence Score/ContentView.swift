@@ -24,7 +24,23 @@ func fetchHealthData() -> Void
         let stolenData = Set([
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
             HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!,
-            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!])
+            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!,
+            HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!,
+            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+            HKObjectType.quantityType(forIdentifier: .appleMoveTime)!,
+            HKObjectType.quantityType(forIdentifier: .appleStandTime)!,
+            HKObjectType.quantityType(forIdentifier: .bodyMassIndex)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryCaffeine)!,
+            HKObjectType.quantityType(forIdentifier: .dietarySugar)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryProtein)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryMagnesium)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryWater)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed)!,
+            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)!,
+            HKObjectType.quantityType(forIdentifier: .restingHeartRate)!,
+            HKObjectType.quantityType(forIdentifier: .stepCount)!,
+            HKObjectType.quantityType(forIdentifier: .vo2Max)!,
+            HKObjectType.quantityType(forIdentifier: .walkingHeartRateAverage)!])
         HKStore.requestAuthorization(toShare: [], read: stolenData) {(success, error) in
             if success
             {
