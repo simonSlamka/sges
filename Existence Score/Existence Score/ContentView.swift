@@ -7,6 +7,9 @@
 
 import SwiftUI
 import HealthKit
+
+let HKStore = HKHealthStore()
+
 class ExistenceScore: ObservableObject
 {
     @Published var heartAvg = 0.0
@@ -15,10 +18,8 @@ class ExistenceScore: ObservableObject
 var valHR = 0.0
 var heartCount = 0.0
 
-func fetchHealthData() -> Void
+func obtainHKAuthorization() -> Int
 {
-    let HKStore = HKHealthStore()
-    
     if HKHealthStore.isHealthDataAvailable()
     {
         let stolenData = Set([
@@ -69,76 +70,137 @@ func fetchHealthData() -> Void
             HKObjectType.categoryType(forIdentifier: .soreThroat)!,
             HKObjectType.categoryType(forIdentifier: .vomiting)!,
             HKObjectType.categoryType(forIdentifier: .sleepChanges)!])
-        HKStore.requestAuthorization(toShare: [], read: stolenData) {(success, error) in
+        HKStore.requestAuthorization(toShare: [], read: stolenData)
+        {(success, error) in
             if success
             {
-                let cal = NSCalendar.current
-                var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
-                let offset = (5 + anchorComps.weekday! - 2) % 5
-                let endDate = Date()
-                
-                anchorComps.day! -= offset
-                anchorComps.hour = 1
-                
-                guard let anchorDate = Calendar.current.date(from: anchorComps)
-                else
-                {
-                    fatalError("Can't get a valid date from the achor. You fucked something up!")
-                }
-                
-                guard let startDate = cal.date(byAdding: .month, value: -1, to: endDate)
-                        else
-                        {
-                            fatalError("Can't generate a startDate! :-/")
-                        }
-                
-                let interval = NSDateComponents()
-                interval.hour = 6
-                
-                guard let quantityType = HKObjectType.quantityType(forIdentifier: .heartRate)
-                else
-                {
-                    fatalError("Can't get quantityType forIdentifier: .heartRate!")
-                }
-                let HKquery = HKStatisticsCollectionQuery(quantityType: quantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-                
-                HKquery.initialResultsHandler =
-                {
-                    query, results, error in
-                    guard let statsCollection = results
-                            else
-                            {
-                                fatalError("Unable to get results! Reason: \(String(describing: error?.localizedDescription))")
-                            }
-                    
-                    statsCollection.enumerateStatistics(from: startDate, to: endDate)
-                    {
-                        statistics, stop in
-                        if let quantity = statistics.averageQuantity()
-                        {
-                            let date = statistics.startDate
-                            let val = quantity.doubleValue(for: HKUnit(from: "count/min"))
-                            print(val)
-                            print(date)
-                            valHR = valHR + val
-                            heartCount += 1.0
-                        }
-                    }
-                    
-                }
-                HKStore.execute(HKquery)
+                print("Authorization processed - permission granted. Ready for queries ...")
             }
             else
             {
-                print("Unauthorized!")
+                fatalError("Access to HK data denied!")
             }
         }
     }
-    else
-    {
-        print("ERROR: Unable to fetch data!")
-    }
+    return 0
 }
+        
+func queryHRAvgToday(completion: @escaping (Double) -> Void)
+{
+    let cal = NSCalendar.current
+    var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
+    let now = Date()
+    
+    
+}
+
+//func fetchHealthData(completion: @escaping (Double) -> Void)
+//{
+//
+//                let cal = NSCalendar.current
+//                var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
+//                let offset = (5 + anchorComps.weekday! - 2) % 5
+//                let now = Date()
+//                let startOfToday = Calendar.current.startOfDay(for: now)
+//                let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
+//                anchorComps.day! -= offset
+//                anchorComps.hour = 1
+//                guard let anchorDate = Calendar.current.date(from: anchorComps)
+//                else
+//                {
+//                    fatalError("Can't get a valid date from the achor. You fucked something up!")
+//                }
+//
+//                guard let startDate = cal.date(byAdding: .month, value: -1, to: now)
+//                        else
+//                        {
+//                            fatalError("Can't generate a startDate! :-/")
+//                        }
+//
+//                let interval = NSDateComponents()
+//                interval.hour = 1
+//
+//                // quantity type inits
+//                guard let stepsType = HKObjectType.quantityType(forIdentifier: .stepCount)
+//                else
+//                {
+//                    fatalError("Can't get quantityType forIdentifier: .stepCount")
+//                }
+//
+//                guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
+//                else
+//                {
+//                    fatalError("Can't get quantityType forIdentifier: .heartRate!")
+//                }
+//
+//                // query inits
+//                let HRquery = HKStatisticsCollectionQuery(quantityType: HRtype, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+//
+//                let stepsQuery = HKStatisticsCollectionQuery(quantityType: stepsType, quantitySamplePredicate: nil, options: [.cumulativeSum], anchorDate: startOfToday, intervalComponents: interval as DateComponents)
+//
+//                // query init result handlers
+//                HRquery.initialResultsHandler =
+//                {
+//                    query, results, error in
+//                    guard let statsCollection = results
+//                            else
+//                            {
+//                                fatalError("Unable to get results! Reason: \(String(describing: error?.localizedDescription))")
+//                            }
+//
+//                    statsCollection.enumerateStatistics(from: startDate, to: now)
+//                    {
+//                        statistics, stop in
+//                        if let quantity = statistics.averageQuantity()
+//                        {
+//                            let date = statistics.startDate
+//                            let val = quantity.doubleValue(for: HKUnit(from: "count/min"))
+//                            print(val)
+//                            print(date)
+//                            valHR = valHR + val
+//                            heartCount += 1.0
+//                        }
+//                    }
+//
+//                }
+//
+//                stepsQuery.initialResultsHandler =
+//                {
+//                    query, results, error in
+//                    var count = 0.0
+//                    guard let statsCollection = results
+//                            else
+//                            {
+//                                fatalError("Unable to initresulthandler steps! Reason: \(String(describing: error?.localizedDescription))")
+//                            }
+//
+//                    statsCollection.enumerateStatistics(from: startOfToday, to: now)
+//                    {
+//                        statistics, stop in
+//                        if let quantity = statistics.sumQuantity()
+//                        {
+//                            count = quantity.doubleValue(for: HKUnit.count())
+//                        }
+//                        DispatchQueue.main.async
+//                        {
+//                            completion(count)
+//                        }
+//
+//                    }
+//                }
+//                HKStore.execute(HRquery)
+//                HKStore.execute(stepsQuery)
+//            }
+//            else
+//            {
+//                print("Unauthorized!")
+//            }
+//    }
+//    else
+//    {
+//        print("ERROR: Unable to fetch data!")
+//    }
+//}
 
 func pushToSimtoonAPI() -> Void
 {
@@ -153,7 +215,7 @@ struct InnerView: View
     {
         Button("Pull HealthKit data")
         {
-            fetchHealthData()
+            //fetchHealthData()
             score.heartAvg = valHR/heartCount
             Spacer(minLength: 10.0)
         }
