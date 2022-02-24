@@ -12,7 +12,8 @@ class ExistenceScore: ObservableObject
     @Published var heartAvg = 0.0
 }
 
-var heartCount = 0
+var valHR = 0.0
+var heartCount = 0.0
 
 func fetchHealthData() -> Void
 {
@@ -23,7 +24,51 @@ func fetchHealthData() -> Void
         let stolenData = Set([
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
             HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!,
-            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!])
+            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!,
+            HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!,
+            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+            HKObjectType.quantityType(forIdentifier: .appleMoveTime)!,
+            HKObjectType.quantityType(forIdentifier: .appleStandTime)!,
+            HKObjectType.quantityType(forIdentifier: .bodyMassIndex)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryCaffeine)!,
+            HKObjectType.quantityType(forIdentifier: .dietarySugar)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryProtein)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryMagnesium)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryWater)!,
+            HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed)!,
+            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)!,
+            HKObjectType.quantityType(forIdentifier: .restingHeartRate)!,
+            HKObjectType.quantityType(forIdentifier: .stepCount)!,
+            HKObjectType.quantityType(forIdentifier: .vo2Max)!,
+            HKObjectType.quantityType(forIdentifier: .walkingHeartRateAverage)!,
+            HKObjectType.categoryType(forIdentifier: .sexualActivity)!,
+            HKObjectType.categoryType(forIdentifier: .abdominalCramps)!,
+            HKObjectType.categoryType(forIdentifier: .appetiteChanges)!,
+            HKObjectType.categoryType(forIdentifier: .chestTightnessOrPain)!,
+            HKObjectType.categoryType(forIdentifier: .chills)!,
+            HKObjectType.categoryType(forIdentifier: .constipation)!,
+            HKObjectType.categoryType(forIdentifier: .diarrhea)!,
+            HKObjectType.categoryType(forIdentifier: .coughing)!,
+            HKObjectType.categoryType(forIdentifier: .dizziness)!,
+            HKObjectType.categoryType(forIdentifier: .drySkin)!,
+            HKObjectType.categoryType(forIdentifier: .fatigue)!,
+            HKObjectType.categoryType(forIdentifier: .fever)!,
+            HKObjectType.categoryType(forIdentifier: .headache)!,
+            HKObjectType.categoryType(forIdentifier: .heartburn)!,
+            HKObjectType.categoryType(forIdentifier: .highHeartRateEvent)!,
+            HKObjectType.categoryType(forIdentifier: .hotFlashes)!,
+            HKObjectType.categoryType(forIdentifier: .irregularHeartRhythmEvent)!,
+            HKObjectType.categoryType(forIdentifier: .lowCardioFitnessEvent)!,
+            HKObjectType.categoryType(forIdentifier: .lowerBackPain)!,
+            HKObjectType.categoryType(forIdentifier: .mindfulSession)!,
+            HKObjectType.categoryType(forIdentifier: .moodChanges)!,
+            HKObjectType.categoryType(forIdentifier: .nausea)!,
+            HKObjectType.categoryType(forIdentifier: .runnyNose)!,
+            HKObjectType.categoryType(forIdentifier: .shortnessOfBreath)!,
+            HKObjectType.categoryType(forIdentifier: .skippedHeartbeat)!,
+            HKObjectType.categoryType(forIdentifier: .soreThroat)!,
+            HKObjectType.categoryType(forIdentifier: .vomiting)!,
+            HKObjectType.categoryType(forIdentifier: .sleepChanges)!])
         HKStore.requestAuthorization(toShare: [], read: stolenData) {(success, error) in
             if success
             {
@@ -48,7 +93,7 @@ func fetchHealthData() -> Void
                         }
                 
                 let interval = NSDateComponents()
-                interval.hour = 12
+                interval.hour = 6
                 
                 guard let quantityType = HKObjectType.quantityType(forIdentifier: .heartRate)
                 else
@@ -73,12 +118,10 @@ func fetchHealthData() -> Void
                         {
                             let date = statistics.startDate
                             let val = quantity.doubleValue(for: HKUnit(from: "count/min"))
-                            print("should be done")
                             print(val)
                             print(date)
-                            @StateObject var score = ExistenceScore()
-                            score.heartAvg = score.heartAvg + val
-                            heartCount += 1
+                            valHR = valHR + val
+                            heartCount += 1.0
                         }
                     }
                     
@@ -97,21 +140,60 @@ func fetchHealthData() -> Void
     }
 }
 
-struct ContentView: View {
-    @StateObject var score = ExistenceScore()
-    var body: some View {
-        Button(action: fetchHealthData) {
-            Text("Pull data")
-                .font(.largeTitle)
-                .bold()
-                .padding()
+func pushToSimtoonAPI() -> Void
+{
+    // PUSH TO SIMTOON API
+}
+
+struct InnerView: View
+{
+    @ObservedObject var score: ExistenceScore
+    
+    var body: some View
+    {
+        Button("Pull HealthKit data")
+        {
+            fetchHealthData()
+            score.heartAvg = valHR/heartCount
+            Spacer(minLength: 10.0)
         }
-        Text(String(score.heartAvg))
+        .frame(width: 200.0, height: 35.0)
+        .background(Color.cyan)
+        //.opacity(0.8)
+        .cornerRadius(25)
+        Button("Push data to SimtoonAPI")
+        {
+            
+        }
+        .frame(width: 200, height: 35)
+        //.background(Color.green)
+        .opacity(0.5)
+        .cornerRadius(5)
+        .disabled(true)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
+struct ContentView: View {
+    @StateObject var score = ExistenceScore()
+    var body: some View {
+        VStack()
+        {
+            Text("Your average HR in the past 30 days taken in 6-hour intervals is " + String(format: "%.1f", score.heartAvg) + " BPM")
+                .font(.headline)
+                .bold()
+                .padding()
+                .foregroundColor(Color.cyan)
+            InnerView(score: score)
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider
+{
+    static var previews: some View
+    {
         ContentView()
+            .preferredColorScheme(.dark)
+            .previewDevice(PreviewDevice(rawValue: "iPhone 12"))
     }
 }
