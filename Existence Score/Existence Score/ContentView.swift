@@ -4,6 +4,8 @@
 //
 //  Created by Simon Slamka on 2/22/22.
 //
+// This app is being coded quickly with little efficiency - I just need to get it to work - do not judge coding practices ...
+// ... in this particular project, please
 
 import SwiftUI
 import HealthKit
@@ -16,7 +18,6 @@ class ExistenceScore: ObservableObject
 }
 
 var valHR = 0.0
-var heartCount = 0.0
 
 func obtainHKAuthorization() -> Int
 {
@@ -85,13 +86,106 @@ func obtainHKAuthorization() -> Int
     return 0
 }
         
+//func queryHRAvgToday() -> Void
+//{
+//    var val = 0.0
+//    let cal = NSCalendar.current
+//    var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
+//    let now = Date()
+//    let startOfToday = Calendar.current.startOfDay(for: now)
+//    guard let anchorDate = Calendar.current.date(from: anchorComps)
+//            else
+//            {
+//                fatalError("Can't init anchorDate!!")
+//            }
+////    guard let startDate = cal.date(byAdding: .day, value: -1, to: now)
+////            else
+////            {
+////                fatalError("Can't init startDate!!")
+////            }
+//    let interval = NSDateComponents()
+//    interval.minute = 30
+//    guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
+//            else
+//            {
+//                fatalError("Can't init HRtype quantityType forIdentifier .heartRate")
+//            }
+//    let HRquery = HKStatisticsCollectionQuery(quantityType: HRtype, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+//    HRquery.initialResultsHandler =
+//    {
+//        query, result, error in
+//        guard let statsCollection = result
+//                else
+//                {
+//                    fatalError("Can't get results from HRquery!")
+//                }
+//        statsCollection.enumerateStatistics(from: startOfToday, to: now)
+//        {
+//            statistics, stop in
+//            if let quantity = statistics.averageQuantity()
+//            {
+//                let date = statistics.startDate
+//                val = quantity.doubleValue(for: HKUnit(from: "count/min"))
+//                print(date)
+//                print(val)
+//                valHR = valHR + val
+//            }
+//        }
+//    }
+//    HKStore.execute(HRquery)
+//}
+
 func queryHRAvgToday(completion: @escaping (Double) -> Void)
 {
+    var val = 0.0
     let cal = NSCalendar.current
     var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
     let now = Date()
-    
-    
+    let startOfToday = Calendar.current.startOfDay(for: now)
+    guard let anchorDate = Calendar.current.date(from: anchorComps)
+            else
+            {
+                fatalError("Can't init anchorDate!!")
+            }
+//    guard let startDate = cal.date(byAdding: .day, value: -1, to: now)
+//            else
+//            {
+//                fatalError("Can't init startDate!!")
+//            }
+    let interval = NSDateComponents()
+    interval.minute = 30
+    guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
+            else
+            {
+                fatalError("Can't init HRtype quantityType forIdentifier .heartRate")
+            }
+    let HRquery = HKStatisticsCollectionQuery(quantityType: HRtype, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+    HRquery.initialResultsHandler =
+    {
+        query, result, error in
+        guard let statsCollection = result
+                else
+                {
+                    fatalError("Can't get results from HRquery!")
+                }
+        statsCollection.enumerateStatistics(from: startOfToday, to: now)
+        {
+            statistics, stop in
+            if let quantity = statistics.averageQuantity()
+            {
+                let date = statistics.startDate
+                val = quantity.doubleValue(for: HKUnit(from: "count/min"))
+                print(date)
+                print(val)
+                //valHR = valHR + val
+                DispatchQueue.main.async
+                {
+                    completion(val)
+                }
+            }
+        }
+    }
+    HKStore.execute(HRquery)
 }
 
 //func fetchHealthData(completion: @escaping (Double) -> Void)
@@ -127,14 +221,7 @@ func queryHRAvgToday(completion: @escaping (Double) -> Void)
 //                    fatalError("Can't get quantityType forIdentifier: .stepCount")
 //                }
 //
-//                guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
-//                else
-//                {
-//                    fatalError("Can't get quantityType forIdentifier: .heartRate!")
-//                }
-//
 //                // query inits
-//                let HRquery = HKStatisticsCollectionQuery(quantityType: HRtype, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
 //
 //                let stepsQuery = HKStatisticsCollectionQuery(quantityType: stepsType, quantitySamplePredicate: nil, options: [.cumulativeSum], anchorDate: startOfToday, intervalComponents: interval as DateComponents)
 //
@@ -215,8 +302,14 @@ struct InnerView: View
     {
         Button("Pull HealthKit data")
         {
-            //fetchHealthData()
-            score.heartAvg = valHR/heartCount
+            queryHRAvgToday()
+            {
+                (val) in
+                score.heartAvg = val
+                
+                
+            }
+            //score.heartAvg = valHR
             Spacer(minLength: 10.0)
         }
         .frame(width: 200.0, height: 35.0)
