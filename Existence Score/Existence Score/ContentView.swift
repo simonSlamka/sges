@@ -184,7 +184,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
 //            }
 //    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
     var HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
+    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime) || objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
     {
         HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
     }
@@ -231,7 +231,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 }
             }
         }
-        else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
+        else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime) || objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -242,6 +242,10 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                     if(objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
                     {
                         val = quantity.doubleValue(for: HKUnit.minute())
+                    }
+                    else if(objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
+                    {
+                        val = quantity.doubleValue(for: HKUnit.largeCalorie())
                     }
                     else
                     {
@@ -411,6 +415,11 @@ struct InnerView: View
                 (out) in
                 score.exerciseMinutes = out
             }
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!)
+            {
+                (out) in
+                score.burnedActiveEnergy = out
+            }
             Spacer(minLength: 10.0)
         }
         .frame(width: 200.0, height: 35.0)
@@ -434,29 +443,27 @@ struct ContentView: View {
     var body: some View {
         VStack()
         {
-            Text("Your average HR today sampled in 10-minute intervals is " + String(format: "%.1f", score.HRAvg) + " BPM")
+            Text("Your average HR today is " + String(format: "%.1f", score.HRAvg) + " BPM")
                 .font(.footnote)
-                .bold()
-                .padding()
-                .foregroundColor(Color.cyan)
-            Text("Your average blood pressure sampled in 10-minute intervals is " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
-                .font(.footnote)
-                .bold()
-                .padding()
-                .foregroundColor(Color.cyan)
+                //.foregroundColor(Color.cyan)
+            if(score.BPsysAvg == 0.0 && score.BPdiaAvg == 0.0)
+            {
+                Text("You haven't measured your blood pressure today!")
+                    .foregroundColor(Color.red)
+            }
+            else
+            {
+                Text("Your average blood pressure today is " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
+                    .font(.footnote)
+                    //.foregroundColor(Color.cyan)
+            }
             Text("Your stepcount today so far is " + String(format: "%.0f", score.stepCount))
+                .font(.footnote)
             Text("Your exercise minutes today: " + String(score.exerciseMinutes))
+                .font(.footnote)
+            Text("Your active burned energy today is: " + String(format: "%.1f", score.burnedActiveEnergy) + " large calories (kcal)")
+                .font(.footnote)
             InnerView(score: score)
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider
-{
-    static var previews: some View
-    {
-        ContentView()
-            .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPhone 12"))
     }
 }

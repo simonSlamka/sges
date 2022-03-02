@@ -292,7 +292,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Existence Score/Existence Score.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0.011;
+				CURRENT_PROJECT_VERSION = 0.012;
 				DEVELOPMENT_ASSET_PATHS = "\"Existence Score/Preview Content\"";
 				DEVELOPMENT_TEAM = XQ5SLZB954;
 				ENABLE_PREVIEWS = NO;
@@ -310,7 +310,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.011;
+				MARKETING_VERSION = 0.012;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ongakken.existencescore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -326,7 +326,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Existence Score/Existence ScoreRelease.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0.011;
+				CURRENT_PROJECT_VERSION = 0.012;
 				DEVELOPMENT_ASSET_PATHS = "\"Existence Score/Preview Content\"";
 				DEVELOPMENT_TEAM = XQ5SLZB954;
 				ENABLE_PREVIEWS = NO;
@@ -344,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.011;
+				MARKETING_VERSION = 0.012;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ongakken.existencescore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
