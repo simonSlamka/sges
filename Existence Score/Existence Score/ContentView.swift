@@ -14,9 +14,24 @@ let HKStore = HKHealthStore()
 
 class ExistenceScore: ObservableObject
 {
+    // daily values, including the averages (midnight to now())
     @Published var heartAvg = 0.0
     @Published var BPsysAvg = 0.0
     @Published var BPdiaAvg = 0.0
+    @Published var exerciseMinutes = 0.0
+    @Published var burnedActiveEnergy = 0.0
+    @Published var moveTimeMinutes = 0.0
+    @Published var standTimeMinutes = 0.0
+    @Published var bodyMassIndex = 0.0
+    @Published var caffeineMilliGrams = 0.0
+    @Published var sugarMilliGrams = 0.0
+    @Published var proteinMilliGrams = 0.0
+    @Published var magnesiumMilliGrams = 0.0
+    @Published var waterMilliLiters = 0.0
+    @Published var energyConsumedCalories = 0.0
+    @Published var bloodOxygenSaturationPercentage = 0.0
+    @Published var restingHR = 0.0
+    @Published var stepCount = 0.0
 }
 
 var valHR = 0.0
@@ -137,8 +152,9 @@ func obtainHKAuthorization() -> Int
 //    HKStore.execute(HRquery)
 //}
 
-func queryHRAvgToday(for objectType: HKObjectType, completion: @escaping (Double) -> Void)
+func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escaping (Double) -> Void)
 {
+    print("Attempting to pull the requested data from HK ...")
     var val = 0.0
     var total = 0.0
     var howMany = 0.0
@@ -146,6 +162,7 @@ func queryHRAvgToday(for objectType: HKObjectType, completion: @escaping (Double
     let anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
     let now = Date()
     let startOfToday = Calendar.current.startOfDay(for: now)
+    let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
     guard let anchorDate = Calendar.current.date(from: anchorComps)
             else
             {
@@ -157,50 +174,85 @@ func queryHRAvgToday(for objectType: HKObjectType, completion: @escaping (Double
 //                fatalError("Can't init startDate!!")
 //            }
     let interval = NSDateComponents()
-    interval.minute = 5
+    interval.minute = 10
 //    guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
 //            else
 //            {
 //                fatalError("Can't init HRtype quantityType forIdentifier .heartRate")
 //            }
-    let HRquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    HRquery.initialResultsHandler =
+//    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+    var HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount))
+    {
+        HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+    }
+    HKquery.initialResultsHandler =
     {
         query, result, error in
         guard let statsCollection = result
                 else
                 {
-                    fatalError("Can't get results from HRquery!")
+                    fatalError("Can't get results from HKquery!")
                 }
-        statsCollection.enumerateStatistics(from: startOfToday, to: now)
+        if(objectType != HKObjectType.quantityType(forIdentifier: .stepCount))
         {
-            statistics, stop in
-            if let quantity = statistics.averageQuantity()
+            statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
-                let date = statistics.startDate
-                if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate))
+                statistics, stop in
+                if let quantity = statistics.averageQuantity()
                 {
-                    val = quantity.doubleValue(for: HKUnit(from: "count/min"))
+                    let date = statistics.startDate
+                    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate))
+                    {
+                        val = quantity.doubleValue(for: HKUnit(from: "count/min"))
+                    }
+                    else if(objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+                    {
+                        val = quantity.doubleValue(for: HKUnit(from: "mmHg"))
+                    }
+                    else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount))
+                    {
+                        val = quantity.doubleValue(for: HKUnit.count())
+                        print("stepCount: " + String(val))
+                    }
+                    print("---------------------------")
+                    print("Times are in UTC!")
+                    print(date)
+                    print(val)
+                    total = total + val
+                    howMany = howMany + 1
+                    DispatchQueue.main.async
+                    {
+                        let out = total/howMany
+                        completion(out)
+                    }
                 }
-                else if(objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+            }
+        }
+        else
+        {
+            statsCollection.enumerateStatistics(from: startOfToday, to: now)
+            {
+                statistics, stop in
+                if let quantity = statistics.sumQuantity()
                 {
-                    val = quantity.doubleValue(for: HKUnit(from: "mmHg"))
-                }
-                print("---------------------------")
-                print("Times are in UTC!")
-                print(date)
-                print(val)
-                total = total + val
-                howMany = howMany + 1
-                DispatchQueue.main.async
-                {
-                    let outAvg = total/howMany
-                    completion(outAvg)
+                    let date = statistics.startDate
+                    val = quantity.doubleValue(for: HKUnit.count())
+                    print("stepCount: " + String(val))
+                    print("---------------------------")
+                    print("Times are in UTC!")
+                    print(date)
+                    print(val)
+                    total = total + val
+                    DispatchQueue.main.async
+                    {
+                        completion(total)
+                    }
                 }
             }
         }
     }
-    HKStore.execute(HRquery)
+    HKStore.execute(HKquery)
 }
 
 //func fetchHealthData(completion: @escaping (Double) -> Void)
@@ -315,24 +367,36 @@ struct InnerView: View
     
     var body: some View
     {
+        Button("Obtain HealthKit auth")
+        {
+            if(obtainHKAuthorization() != 0)
+            {
+                
+            }
+            Spacer(minLength: 10.0)
+        }
         Button("Pull HealthKit data")
         {
-            queryHRAvgToday(for:HKObjectType.quantityType(forIdentifier: .heartRate)!)
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .heartRate)!)
             {
-                (outAvg) in
-                score.heartAvg = outAvg
+                (out) in
+                score.heartAvg = out
             }
-            queryHRAvgToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!)
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!)
             {
-                (outAvg) in
-                score.BPsysAvg = outAvg
+                (out) in
+                score.BPsysAvg = out
             }
-            queryHRAvgToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!)
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!)
             {
-                (outAvg) in
-                score.BPdiaAvg = outAvg
+                (out) in
+                score.BPdiaAvg = out
             }
-            //score.heartAvg = valHR
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .stepCount)!)
+            {
+                (out) in
+                score.stepCount = out
+            }
             Spacer(minLength: 10.0)
         }
         .frame(width: 200.0, height: 35.0)
@@ -356,16 +420,18 @@ struct ContentView: View {
     var body: some View {
         VStack()
         {
-            Text("Your average HR today sampled in 5-minute intervals is " + String(format: "%.1f", score.heartAvg) + " BPM")
+            Text("Your average HR today sampled in 10-minute intervals is " + String(format: "%.1f", score.heartAvg) + " BPM")
                 .font(.footnote)
                 .bold()
                 .padding()
                 .foregroundColor(Color.cyan)
-            Text("Your average blood pressure sampled in 5-minute intervals is " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
+            Text("Your average blood pressure sampled in 10-minute intervals is " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
                 .font(.footnote)
                 .bold()
                 .padding()
                 .foregroundColor(Color.cyan)
+            Text("Your stepcount today so far is " + String(format: "%.0f", score.stepCount))
+                .padding()
             InnerView(score: score)
         }
     }
