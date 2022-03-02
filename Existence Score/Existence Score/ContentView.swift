@@ -15,7 +15,7 @@ let HKStore = HKHealthStore()
 class ExistenceScore: ObservableObject
 {
     // daily values, including the averages (midnight to now())
-    @Published var heartAvg = 0.0
+    @Published var HRAvg = 0.0
     @Published var BPsysAvg = 0.0
     @Published var BPdiaAvg = 0.0
     @Published var exerciseMinutes = 0.0
@@ -30,8 +30,10 @@ class ExistenceScore: ObservableObject
     @Published var waterMilliLiters = 0.0
     @Published var energyConsumedCalories = 0.0
     @Published var bloodOxygenSaturationPercentage = 0.0
-    @Published var restingHR = 0.0
+    @Published var restingHRAvg = 0.0
     @Published var stepCount = 0.0
+    @Published var fitnessLevel = 0.0
+    @Published var walkingHRAvg = 0.0
 }
 
 var valHR = 0.0
@@ -182,7 +184,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
 //            }
 //    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
     var HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount))
+    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
     {
         HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
     }
@@ -194,7 +196,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 {
                     fatalError("Can't get results from HKquery!")
                 }
-        if(objectType != HKObjectType.quantityType(forIdentifier: .stepCount))
+        if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -229,7 +231,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 }
             }
         }
-        else
+        else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -237,7 +239,14 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 if let quantity = statistics.sumQuantity()
                 {
                     let date = statistics.startDate
-                    val = quantity.doubleValue(for: HKUnit.count())
+                    if(objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
+                    {
+                        val = quantity.doubleValue(for: HKUnit.minute())
+                    }
+                    else
+                    {
+                        val = quantity.doubleValue(for: HKUnit.count())
+                    }
                     print("stepCount: " + String(val))
                     print("---------------------------")
                     print("Times are in UTC!")
@@ -380,7 +389,7 @@ struct InnerView: View
             queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .heartRate)!)
             {
                 (out) in
-                score.heartAvg = out
+                score.HRAvg = out
             }
             queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!)
             {
@@ -396,6 +405,11 @@ struct InnerView: View
             {
                 (out) in
                 score.stepCount = out
+            }
+            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!)
+            {
+                (out) in
+                score.exerciseMinutes = out
             }
             Spacer(minLength: 10.0)
         }
@@ -420,7 +434,7 @@ struct ContentView: View {
     var body: some View {
         VStack()
         {
-            Text("Your average HR today sampled in 10-minute intervals is " + String(format: "%.1f", score.heartAvg) + " BPM")
+            Text("Your average HR today sampled in 10-minute intervals is " + String(format: "%.1f", score.HRAvg) + " BPM")
                 .font(.footnote)
                 .bold()
                 .padding()
@@ -431,7 +445,7 @@ struct ContentView: View {
                 .padding()
                 .foregroundColor(Color.cyan)
             Text("Your stepcount today so far is " + String(format: "%.0f", score.stepCount))
-                .padding()
+            Text("Your exercise minutes today: " + String(score.exerciseMinutes))
             InnerView(score: score)
         }
     }
