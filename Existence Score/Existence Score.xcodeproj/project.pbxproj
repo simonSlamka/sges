@@ -292,13 +292,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Existence Score/Existence Score.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0.01;
+				CURRENT_PROJECT_VERSION = 0.011;
 				DEVELOPMENT_ASSET_PATHS = "\"Existence Score/Preview Content\"";
 				DEVELOPMENT_TEAM = XQ5SLZB954;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Existence-Score-Info.plist";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -309,7 +310,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.011;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ongakken.existencescore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -325,13 +326,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Existence Score/Existence ScoreRelease.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 0.01;
+				CURRENT_PROJECT_VERSION = 0.011;
 				DEVELOPMENT_ASSET_PATHS = "\"Existence Score/Preview Content\"";
 				DEVELOPMENT_TEAM = XQ5SLZB954;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Existence-Score-Info.plist";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I've read that this field needs to be long, so ... is it now long enough???!";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -342,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.011;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ongakken.existencescore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

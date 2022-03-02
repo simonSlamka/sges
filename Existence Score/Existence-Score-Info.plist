@@ -2,11 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSHealthShareUsageDescription</key>
-	<string>We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I&apos;ve read that this field needs to be long, so ... is it now long enough???!</string>
-	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
-	<string>We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I&apos;ve read that this field needs to be long, so ... is it now long enough???!</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>We need your HealthKit data to calculate your Existence Store. Please approve the request. If you do, we will calculate the needed value and display it right here, friend. I&apos;ve read that this field needs to be long, so ... is it now long enough???!</string>
+	<key>CFBundleIconName</key>
+	<string>iphoneappicon</string>
 </dict>
 </plist>
