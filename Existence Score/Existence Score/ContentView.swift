@@ -34,6 +34,38 @@ class ExistenceScore: ObservableObject
     @Published var stepCount = 0.0
     @Published var fitnessLevel = 0.0
     @Published var walkingHRAvg = 0.0
+    
+    // the following types are so-called categoryTypes. When we say "cough" or "chills", we mean a count of instances over the course of a day, so for example, coughed twice or ...
+    // ... had two mindful sessions. Duration is irrelevant for now. Some of these might be harder to "count", but I don't have a better idea how to represent these yet
+    @Published var sexCount = 0.0 // this is probably the hardest property of all these to increment :D
+    @Published var abdominalCrampsCount = 0.0
+    @Published var appetiteChangeCount = 0.0
+    @Published var chestTightnessOrPainCount = 0.0
+    @Published var chillsCount = 0.0
+    @Published var constipationCount = 0.0
+    @Published var diarrheaCount = 0.0
+    @Published var coughCount = 0.0
+    @Published var dizzinessCount = 0.0
+    @Published var drySkinCount = 0.0
+    @Published var fatigueCount = 0.0
+    @Published var feverCount = 0.0
+    @Published var headacheCount = 0.0
+    @Published var heartburnCount = 0.0
+    @Published var highHREventCount = 0.0
+    @Published var hotFlashesCount = 0.0
+    @Published var irregularHREventCount = 0.0
+    @Published var lowFitnessEventCount = 0.0
+    @Published var lowerBackPainCount = 0.0
+    @Published var mindfulSessionCount = 0.0
+    @Published var moodChangeCount = 0.0
+    @Published var nauseaCount = 0.0
+    @Published var runnyNoseCount = 0.0
+    @Published var shortnessOfBreathCount = 0.0
+    @Published var skippedHeartBeatCount = 0.0
+    @Published var soreThroatCount = 0.0
+    @Published var vomitingCount = 0.0
+    @Published var sleepChangesCount = 0.0
+    
 }
 
 var valHR = 0.0
@@ -154,7 +186,7 @@ func obtainHKAuthorization() -> Int
 //    HKStore.execute(HRquery)
 //}
 
-func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escaping (Double) -> Void)
+func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, completion: @escaping (Double) -> Void)
 {
     print("Attempting to pull the requested data from HK ...")
     var val = 0.0
@@ -183,10 +215,10 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
 //                fatalError("Can't init HRtype quantityType forIdentifier .heartRate")
 //            }
 //    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
-    var HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime) || objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
+    var HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+    if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
     {
-        HKquery = HKStatisticsCollectionQuery(quantityType: objectType as! HKQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
+        HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
     }
     HKquery.initialResultsHandler =
     {
@@ -196,7 +228,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 {
                     fatalError("Can't get results from HKquery!")
                 }
-        if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+        if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -204,18 +236,22 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 if let quantity = statistics.averageQuantity()
                 {
                     let date = statistics.startDate
-                    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate))
+                    if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit(from: "count/min"))) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit(from: "count/min"))
                     }
-                    else if(objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
-                    {
-                        val = quantity.doubleValue(for: HKUnit(from: "mmHg"))
-                    }
-                    else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount))
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.count())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.count())
                         print("stepCount: " + String(val))
+                    }
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit(from: "mmHg"))) != false)
+                    {
+                        val = quantity.doubleValue(for: HKUnit(from: "mmHg"))
+                    }
+                    else
+                    {
+                        fatalError("Unit unknown!")
                     }
                     print("---------------------------")
                     print("Times are in UTC!")
@@ -231,7 +267,7 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 }
             }
         }
-        else if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime) || objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
+        else //if(objectType == HKObjectType.quantityType(forIdentifier: .stepCount) || objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime) || objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -239,17 +275,21 @@ func queryRequestedDataForToday(for objectType: HKObjectType, completion: @escap
                 if let quantity = statistics.sumQuantity()
                 {
                     let date = statistics.startDate
-                    if(objectType == HKObjectType.quantityType(forIdentifier: .appleExerciseTime))
+                    if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.minute())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.minute())
                     }
-                    else if(objectType == HKObjectType.quantityType(forIdentifier: .activeEnergyBurned))
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.largeCalorie())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.largeCalorie())
                     }
-                    else
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.count())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.count())
+                    }
+                    else
+                    {
+                        fatalError("Unit unknown!")
                     }
                     print("stepCount: " + String(val))
                     print("---------------------------")
@@ -390,35 +430,40 @@ struct InnerView: View
         }
         Button("Pull HealthKit data")
         {
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .heartRate)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierHeartRate"))
             {
                 (out) in
                 score.HRAvg = out
             }
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureSystolic"))
             {
                 (out) in
                 score.BPsysAvg = out
             }
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureDiastolic"))
             {
                 (out) in
                 score.BPdiaAvg = out
             }
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .stepCount)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierStepCount"))
             {
                 (out) in
                 score.stepCount = out
             }
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleExerciseTime"))
             {
                 (out) in
                 score.exerciseMinutes = out
             }
-            queryRequestedDataForToday(for: HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!)
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierActiveEnergyBurned"))
             {
                 (out) in
                 score.burnedActiveEnergy = out
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleMoveTime"))
+            {
+                (out) in
+                score.moveTimeMinutes = out
             }
             Spacer(minLength: 10.0)
         }
@@ -462,6 +507,8 @@ struct ContentView: View {
             Text("Your exercise minutes today: " + String(score.exerciseMinutes))
                 .font(.footnote)
             Text("Your active burned energy today is: " + String(format: "%.1f", score.burnedActiveEnergy) + " large calories (kcal)")
+                .font(.footnote)
+            Text("Today's move time in minutes is: " + String(score.moveTimeMinutes))
                 .font(.footnote)
             InnerView(score: score)
         }
