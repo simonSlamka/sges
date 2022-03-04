@@ -20,11 +20,10 @@ class ExistenceScore: ObservableObject
     @Published var BPdiaAvg = 0.0
     @Published var exerciseMinutes = 0.0
     @Published var burnedActiveEnergy = 0.0
-    @Published var moveTimeMinutes = 0.0
     @Published var standTimeMinutes = 0.0
     @Published var bodyMassIndex = 0.0
     @Published var caffeineMilliGrams = 0.0
-    @Published var sugarMilliGrams = 0.0
+    @Published var sugarGrams = 0.0
     @Published var proteinMilliGrams = 0.0
     @Published var magnesiumMilliGrams = 0.0
     @Published var waterMilliLiters = 0.0
@@ -80,7 +79,6 @@ func obtainHKAuthorization() -> Int
             HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!,
             HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!,
             HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-            HKObjectType.quantityType(forIdentifier: .appleMoveTime)!,
             HKObjectType.quantityType(forIdentifier: .appleStandTime)!,
             HKObjectType.quantityType(forIdentifier: .bodyMassIndex)!,
             HKObjectType.quantityType(forIdentifier: .dietaryCaffeine)!,
@@ -216,7 +214,7 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
 //            }
 //    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
     var HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+    if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bodyMassIndex))
     {
         HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
     }
@@ -243,7 +241,6 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
                     else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.count())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.count())
-                        print("stepCount: " + String(val))
                     }
                     else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit(from: "mmHg"))) != false)
                     {
@@ -286,6 +283,14 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
                     else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.count())) != false)
                     {
                         val = quantity.doubleValue(for: HKUnit.count())
+                    }
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.gram())) != false)
+                    {
+                        val = quantity.doubleValue(for: HKUnit.gram())
+                    }
+                    else if((HKObjectType.quantityType(forIdentifier: typeIdentifier)?.is(compatibleWith: HKUnit.liter())) != false)
+                    {
+                        val = quantity.doubleValue(for: HKUnit.liter())
                     }
                     else
                     {
@@ -460,10 +465,40 @@ struct InnerView: View
                 (out) in
                 score.burnedActiveEnergy = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleMoveTime"))
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleStandTime"))
             {
                 (out) in
-                score.moveTimeMinutes = out
+                score.standTimeMinutes = out
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBodyMassIndex"))
+            {
+                (out) in
+                score.bodyMassIndex = out
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryCaffeine"))
+            {
+                (out) in
+                score.caffeineMilliGrams = out * 1000 /* !! converting grams to milligrams */
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietarySugar"))
+            {
+                (out) in
+                score.sugarGrams = out
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryProtein"))
+            {
+                (out) in
+                score.proteinMilliGrams = out * 1000
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryMagnesium"))
+            {
+                (out) in
+                score.magnesiumMilliGrams = out * 1000
+            }
+            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryWater"))
+            {
+                (out) in
+                score.waterMilliLiters = out * 1000 /* converting liters to milliliters */
             }
             Spacer(minLength: 10.0)
         }
@@ -473,13 +508,37 @@ struct InnerView: View
         .cornerRadius(25)
         Button("Push data to SimtoonAPI")
         {
-            
+            print("---")
+            print("")
+            print(score.HRAvg)
+            print(score.BPsysAvg)
+            print(score.BPdiaAvg)
+            print(score.exerciseMinutes)
+            print(score.burnedActiveEnergy)
+            print(score.standTimeMinutes)
+            print(score.bodyMassIndex)
+            print(score.caffeineMilliGrams)
+            print(score.sugarGrams)
+            print(score.proteinMilliGrams)
+            print(score.magnesiumMilliGrams)
+            print(score.waterMilliLiters)
+            print(score.energyConsumedCalories)
+            print(score.bloodOxygenSaturationPercentage)
+            print(score.restingHRAvg)
+            print(score.stepCount)
+            print(score.fitnessLevel)
+            print(score.walkingHRAvg)
+            print("")
+            print("categoryTypes")
+            print(score.sexCount)
+            print(score.abdominalCrampsCount)
+            print(score.appetiteChangeCount)
         }
         .frame(width: 200, height: 35)
         //.background(Color.green)
         .opacity(0.5)
         .cornerRadius(5)
-        .disabled(true)
+        //.disabled(true)
     }
 }
 
@@ -488,7 +547,10 @@ struct ContentView: View {
     var body: some View {
         VStack()
         {
-            Text("Your average HR today is " + String(format: "%.1f", score.HRAvg) + " BPM")
+            Text("Data for today")
+                .font(.title)
+            //Spacer(minLength: 1.0)
+            Text("Average HR: " + String(format: "%.1f", score.HRAvg) + " BPM")
                 .font(.footnote)
                 //.foregroundColor(Color.cyan)
             if(score.BPsysAvg == 0.0 && score.BPdiaAvg == 0.0)
@@ -498,18 +560,33 @@ struct ContentView: View {
             }
             else
             {
-                Text("Your average blood pressure today is " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
+                Text("Average blood pressure: " + String(score.BPsysAvg) + "/" + String(score.BPdiaAvg) + " mmHg")
                     .font(.footnote)
                     //.foregroundColor(Color.cyan)
             }
-            Text("Your stepcount today so far is " + String(format: "%.0f", score.stepCount))
+            Text("Stepcount: " + String(format: "%.0f", score.stepCount))
                 .font(.footnote)
-            Text("Your exercise minutes today: " + String(score.exerciseMinutes))
+            Text("Exercise minutes: " + String(score.exerciseMinutes))
                 .font(.footnote)
-            Text("Your active burned energy today is: " + String(format: "%.1f", score.burnedActiveEnergy) + " large calories (kcal)")
+            Text("Active burned energy: " + String(format: "%.1f", score.burnedActiveEnergy) + " large calories [kcal]")
                 .font(.footnote)
-            Text("Today's move time in minutes is: " + String(score.moveTimeMinutes))
+            Text("Stand time in minutes: " + String(score.standTimeMinutes))
                 .font(.footnote)
+            if(score.bodyMassIndex == 0.0)
+            {
+                Text("No weight/height data for today!")
+                    .foregroundColor(Color.red)
+                    .font(.footnote)
+            }
+            else
+            {
+                Text("BMI: " + String(score.bodyMassIndex))
+                    .font(.footnote)
+            }
+            Text("Caffeine in milligrams: " + String(format: "%.1f", score.caffeineMilliGrams))
+                .font(.footnote)
+//            Text("Sugar in grams: " + String(format: "%.1f", score.sugarGrams))
+//                .font(.footnote)
             InnerView(score: score)
         }
     }
