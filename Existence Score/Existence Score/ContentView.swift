@@ -134,57 +134,8 @@ func obtainHKAuthorization() -> Int
     }
     return 0
 }
-        
-//func queryHRAvgToday() -> Void
-//{
-//    var val = 0.0
-//    let cal = NSCalendar.current
-//    var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
-//    let now = Date()
-//    let startOfToday = Calendar.current.startOfDay(for: now)
-//    guard let anchorDate = Calendar.current.date(from: anchorComps)
-//            else
-//            {
-//                fatalError("Can't init anchorDate!!")
-//            }
-////    guard let startDate = cal.date(byAdding: .day, value: -1, to: now)
-////            else
-////            {
-////                fatalError("Can't init startDate!!")
-////            }
-//    let interval = NSDateComponents()
-//    interval.minute = 30
-//    guard let HRtype = HKObjectType.quantityType(forIdentifier: .heartRate)
-//            else
-//            {
-//                fatalError("Can't init HRtype quantityType forIdentifier .heartRate")
-//            }
-//    let HRquery = HKStatisticsCollectionQuery(quantityType: HRtype, quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-//    HRquery.initialResultsHandler =
-//    {
-//        query, result, error in
-//        guard let statsCollection = result
-//                else
-//                {
-//                    fatalError("Can't get results from HRquery!")
-//                }
-//        statsCollection.enumerateStatistics(from: startOfToday, to: now)
-//        {
-//            statistics, stop in
-//            if let quantity = statistics.averageQuantity()
-//            {
-//                let date = statistics.startDate
-//                val = quantity.doubleValue(for: HKUnit(from: "count/min"))
-//                print(date)
-//                print(val)
-//                valHR = valHR + val
-//            }
-//        }
-//    }
-//    HKStore.execute(HRquery)
-//}
 
-func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, completion: @escaping (Double) -> Void)
+func queryQuantityData(for typeIdentifier: HKQuantityTypeIdentifier, completion: @escaping (Double) -> Void)
 {
     print("Attempting to pull the requested data from HK ...")
     var val = 0.0
@@ -214,7 +165,11 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
 //            }
 //    if(objectType == HKObjectType.quantityType(forIdentifier: .heartRate) || objectType == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || objectType ==  HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
     var HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
-    if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bodyMassIndex))
+    if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bodyMassIndex) ||
+       HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .oxygenSaturation) ||
+       HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .restingHeartRate) ||
+       HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .walkingHeartRateAverage) ||
+       HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .vo2Max))
     {
         HKquery = HKStatisticsCollectionQuery(quantityType: HKQuantityType(typeIdentifier), quantitySamplePredicate: nil, options: .discreteAverage, anchorDate: anchorDate, intervalComponents: interval as DateComponents)
     }
@@ -226,7 +181,11 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
                 {
                     fatalError("Can't get results from HKquery!")
                 }
-        if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic))
+        if(HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .heartRate) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic) || HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic) ||
+           HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .oxygenSaturation) ||
+           HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .restingHeartRate) ||
+           HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .walkingHeartRateAverage) ||
+           HKObjectType.quantityType(forIdentifier: typeIdentifier) == HKObjectType.quantityType(forIdentifier: .vo2Max))
         {
             statsCollection.enumerateStatistics(from: startOfToday, to: now)
             {
@@ -313,105 +272,39 @@ func queryRequestedDataForToday(for typeIdentifier: HKQuantityTypeIdentifier, co
     HKStore.execute(HKquery)
 }
 
-//func fetchHealthData(completion: @escaping (Double) -> Void)
+//func queryCategoryData(for typeIdentifier: HKCategoryTypeIdentifier, completion: @escaping (Double) -> Void)
 //{
-//
-//                let cal = NSCalendar.current
-//                var anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
-//                let offset = (5 + anchorComps.weekday! - 2) % 5
-//                let now = Date()
-//                let startOfToday = Calendar.current.startOfDay(for: now)
-//                let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
-//                anchorComps.day! -= offset
-//                anchorComps.hour = 1
-//                guard let anchorDate = Calendar.current.date(from: anchorComps)
-//                else
-//                {
-//                    fatalError("Can't get a valid date from the achor. You fucked something up!")
-//                }
-//
-//                guard let startDate = cal.date(byAdding: .month, value: -1, to: now)
-//                        else
-//                        {
-//                            fatalError("Can't generate a startDate! :-/")
-//                        }
-//
-//                let interval = NSDateComponents()
-//                interval.hour = 1
-//
-//                // quantity type inits
-//                guard let stepsType = HKObjectType.quantityType(forIdentifier: .stepCount)
-//                else
-//                {
-//                    fatalError("Can't get quantityType forIdentifier: .stepCount")
-//                }
-//
-//                // query inits
-//
-//                let stepsQuery = HKStatisticsCollectionQuery(quantityType: stepsType, quantitySamplePredicate: nil, options: [.cumulativeSum], anchorDate: startOfToday, intervalComponents: interval as DateComponents)
-//
-//                // query init result handlers
-//                HRquery.initialResultsHandler =
-//                {
-//                    query, results, error in
-//                    guard let statsCollection = results
-//                            else
-//                            {
-//                                fatalError("Unable to get results! Reason: \(String(describing: error?.localizedDescription))")
-//                            }
-//
-//                    statsCollection.enumerateStatistics(from: startDate, to: now)
-//                    {
-//                        statistics, stop in
-//                        if let quantity = statistics.averageQuantity()
-//                        {
-//                            let date = statistics.startDate
-//                            let val = quantity.doubleValue(for: HKUnit(from: "count/min"))
-//                            print(val)
-//                            print(date)
-//                            valHR = valHR + val
-//                            heartCount += 1.0
-//                        }
-//                    }
-//
-//                }
-//
-//                stepsQuery.initialResultsHandler =
-//                {
-//                    query, results, error in
-//                    var count = 0.0
-//                    guard let statsCollection = results
-//                            else
-//                            {
-//                                fatalError("Unable to initresulthandler steps! Reason: \(String(describing: error?.localizedDescription))")
-//                            }
-//
-//                    statsCollection.enumerateStatistics(from: startOfToday, to: now)
-//                    {
-//                        statistics, stop in
-//                        if let quantity = statistics.sumQuantity()
-//                        {
-//                            count = quantity.doubleValue(for: HKUnit.count())
-//                        }
-//                        DispatchQueue.main.async
-//                        {
-//                            completion(count)
-//                        }
-//
-//                    }
-//                }
-//                HKStore.execute(HRquery)
-//                HKStore.execute(stepsQuery)
-//            }
+//    print("Attempting to pull the requested data from HK ...")
+//    var val = 0.0
+//    var total = 0.0
+//    var howMany = 0.0
+//    let cal = NSCalendar.current
+//    let anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
+//    let now = Date()
+//    let startOfToday = Calendar.current.startOfDay(for: now)
+//    let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
+//    guard let anchorDate = Calendar.current.date(from: anchorComps)
 //            else
 //            {
-//                print("Unauthorized!")
+//                fatalError("Can't init anchorDate!!")
 //            }
-//    }
-//    else
+//    let interval = NSDateComponents()
+//    interval.minute = 10
+//    var HKquery = HKSampleQuery(sampleType: HKCategoryType(typeIdentifier), predicate: predicate, limit: 1, sortDescriptors: nil)
 //    {
-//        print("ERROR: Unable to fetch data!")
+//        (query, result, error) in
+//        if (error != nil)
+//        {
+//            fatalError("Can't set the categoryType query!")
+//        }
+//
+//        if let result = result
+//        {
+//            // stuck here
+//        }
 //    }
+//
+//    HKStore.execute(HKquery)
 //}
 
 func pushToSimtoonAPI() -> Void
@@ -435,71 +328,101 @@ struct InnerView: View
         }
         Button("Pull HealthKit data")
         {
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierHeartRate"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierHeartRate"))
             {
                 (out) in
                 score.HRAvg = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureSystolic"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureSystolic"))
             {
                 (out) in
                 score.BPsysAvg = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureDiastolic"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBloodPressureDiastolic"))
             {
                 (out) in
                 score.BPdiaAvg = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierStepCount"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierStepCount"))
             {
                 (out) in
                 score.stepCount = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleExerciseTime"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleExerciseTime"))
             {
                 (out) in
                 score.exerciseMinutes = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierActiveEnergyBurned"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierActiveEnergyBurned"))
             {
                 (out) in
                 score.burnedActiveEnergy = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleStandTime"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierAppleStandTime"))
             {
                 (out) in
                 score.standTimeMinutes = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBodyMassIndex"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierBodyMassIndex"))
             {
                 (out) in
                 score.bodyMassIndex = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryCaffeine"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryCaffeine"))
             {
                 (out) in
                 score.caffeineMilliGrams = out * 1000 /* !! converting grams to milligrams */
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietarySugar"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietarySugar"))
             {
                 (out) in
                 score.sugarGrams = out
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryProtein"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryProtein"))
             {
                 (out) in
                 score.proteinMilliGrams = out * 1000
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryMagnesium"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryMagnesium"))
             {
                 (out) in
                 score.magnesiumMilliGrams = out * 1000
             }
-            queryRequestedDataForToday(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryWater"))
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryWater"))
             {
                 (out) in
                 score.waterMilliLiters = out * 1000 /* converting liters to milliliters */
             }
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierDietaryEnergyConsumed"))
+            {
+                (out) in
+                score.energyConsumedCalories = out
+            }
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierOxygenSaturation"))
+            {
+                (out) in
+                score.bloodOxygenSaturationPercentage = out
+            }
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierRestingHeartRate"))
+            {
+                (out) in
+                score.restingHRAvg = out
+            }
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierVO2Max"))
+            {
+                (out) in
+                score.fitnessLevel = out
+            }
+            queryQuantityData(for: HKQuantityTypeIdentifier(rawValue: "HKQuantityTypeIdentifierWalkingHeartRateAverage"))
+            {
+                (out) in
+                score.walkingHRAvg = out
+            }
+//            queryCategoryData(for: HKCategoryTypeIdentifier(rawValue: "HKCategoryTypeIdentifierSexualActivity"))
+//            {
+//                (out) in
+//                score.sexCount = out
+//            }
             Spacer(minLength: 10.0)
         }
         .frame(width: 200.0, height: 35.0)
@@ -533,6 +456,31 @@ struct InnerView: View
             print(score.sexCount)
             print(score.abdominalCrampsCount)
             print(score.appetiteChangeCount)
+            print(score.chestTightnessOrPainCount)
+            print(score.chillsCount)
+            print(score.constipationCount)
+            print(score.diarrheaCount)
+            print(score.coughCount)
+            print(score.dizzinessCount)
+            print(score.drySkinCount)
+            print(score.fatigueCount)
+            print(score.feverCount)
+            print(score.headacheCount)
+            print(score.heartburnCount)
+            print(score.highHREventCount)
+            print(score.hotFlashesCount)
+            print(score.irregularHREventCount)
+            print(score.lowFitnessEventCount)
+            print(score.lowerBackPainCount)
+            print(score.mindfulSessionCount)
+            print(score.moodChangeCount)
+            print(score.nauseaCount)
+            print(score.runnyNoseCount)
+            print(score.shortnessOfBreathCount)
+            print(score.skippedHeartBeatCount)
+            print(score.soreThroatCount)
+            print(score.vomitingCount)
+            print(score.sleepChangesCount)
         }
         .frame(width: 200, height: 35)
         //.background(Color.green)
