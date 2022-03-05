@@ -14,7 +14,7 @@ let HKStore = HKHealthStore()
 
 class ExistenceScore: ObservableObject
 {
-    // daily values, including the averages (midnight to now())
+    // daily values, including the averages (midnight to Date())
     @Published var HRAvg = 0.0
     @Published var BPsysAvg = 0.0
     @Published var BPdiaAvg = 0.0
