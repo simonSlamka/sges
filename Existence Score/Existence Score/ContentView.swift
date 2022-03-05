@@ -73,7 +73,7 @@ func obtainHKAuthorization() -> Int
 {
     if HKHealthStore.isHealthDataAvailable()
     {
-        let stolenData = Set([
+        let reqData = Set([
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
             HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!,
             HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!,
@@ -120,7 +120,7 @@ func obtainHKAuthorization() -> Int
             HKObjectType.categoryType(forIdentifier: .soreThroat)!,
             HKObjectType.categoryType(forIdentifier: .vomiting)!,
             HKObjectType.categoryType(forIdentifier: .sleepChanges)!])
-        HKStore.requestAuthorization(toShare: [], read: stolenData)
+        HKStore.requestAuthorization(toShare: [], read: reqData)
         {(success, error) in
             if success
             {
