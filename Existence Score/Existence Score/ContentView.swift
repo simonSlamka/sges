@@ -272,40 +272,40 @@ func queryQuantityData(for typeIdentifier: HKQuantityTypeIdentifier, completion:
     HKStore.execute(HKquery)
 }
 
-//func queryCategoryData(for typeIdentifier: HKCategoryTypeIdentifier, completion: @escaping (Double) -> Void)
-//{
-//    print("Attempting to pull the requested data from HK ...")
-//    var val = 0.0
-//    var total = 0.0
-//    var howMany = 0.0
-//    let cal = NSCalendar.current
-//    let anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
-//    let now = Date()
-//    let startOfToday = Calendar.current.startOfDay(for: now)
-//    let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
-//    guard let anchorDate = Calendar.current.date(from: anchorComps)
-//            else
-//            {
-//                fatalError("Can't init anchorDate!!")
-//            }
-//    let interval = NSDateComponents()
-//    interval.minute = 10
-//    var HKquery = HKSampleQuery(sampleType: HKCategoryType(typeIdentifier), predicate: predicate, limit: 1, sortDescriptors: nil)
-//    {
-//        (query, result, error) in
-//        if (error != nil)
-//        {
-//            fatalError("Can't set the categoryType query!")
-//        }
-//
-//        if let result = result
-//        {
-//            // stuck here
-//        }
-//    }
-//
-//    HKStore.execute(HKquery)
-//}
+func queryCategoryData(for typeIdentifier: HKCategoryTypeIdentifier, completion: @escaping (Double) -> Void)
+{
+   print("Attempting to pull the requested data from HK ...")
+   var val = 0.0
+   var total = 0.0
+   var howMany = 0.0
+   let cal = NSCalendar.current
+   let anchorComps = cal.dateComponents([.day, .month, .year, .weekday], from: NSDate() as Date)
+   let now = Date()
+   let startOfToday = Calendar.current.startOfDay(for: now)
+   let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
+   guard let anchorDate = Calendar.current.date(from: anchorComps)
+           else
+           {
+               fatalError("Can't init anchorDate!!")
+           }
+   let interval = NSDateComponents()
+   interval.minute = 10
+   var HKquery = HKSampleQuery(sampleType: HKCategoryType(typeIdentifier), predicate: predicate, limit: 1, sortDescriptors: nil)
+   {
+       (query, result, error) in
+       if (error != nil)
+       {
+           fatalError("Can't set the categoryType query!")
+       }
+
+       if let result = result
+       {
+           // stuck here
+       }
+   }
+
+   HKStore.execute(HKquery)
+}
 
 func pushToSimtoonAPI() -> Void
 {
