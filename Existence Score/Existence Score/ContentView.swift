@@ -290,17 +290,25 @@ func queryCategoryData(for typeIdentifier: HKCategoryTypeIdentifier, completion:
            }
    let interval = NSDateComponents()
    interval.minute = 10
-   var HKquery = HKSampleQuery(sampleType: HKCategoryType(typeIdentifier), predicate: predicate, limit: 1, sortDescriptors: nil)
+   let sortDesc = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+   var HKquery = HKSampleQuery(sampleType: HKCategoryType(typeIdentifier), predicate: predicate, limit: 1, sortDescriptors: [sortDesc])
    {
-       (query, result, error) in
-       if (error != nil)
+       (query, result, error) -> Void in
+       
+       if let rslt = result
        {
-           fatalError("Can't set the categoryType query!")
-       }
-
-       if let result = result
-       {
-           // stuck here
+           for item in rslt
+           {
+               if let sample = item as? HKCategorySample
+               {
+                   let val = sample.value
+                   print("categoryType: " + String(val))
+                   DispatchQueue.main.async
+                   {
+                       completion(Double(val))
+                   }
+               }
+           }
        }
    }
 
@@ -418,11 +426,11 @@ struct InnerView: View
                 (out) in
                 score.walkingHRAvg = out
             }
-//            queryCategoryData(for: HKCategoryTypeIdentifier(rawValue: "HKCategoryTypeIdentifierSexualActivity"))
-//            {
-//                (out) in
-//                score.sexCount = out
-//            }
+            queryCategoryData(for: HKCategoryTypeIdentifier(rawValue: "HKCategoryTypeIdentifierSexualActivity"))
+            {
+                (out) in
+                score.sexCount = out
+            }
             Spacer(minLength: 10.0)
         }
         .frame(width: 200.0, height: 35.0)
@@ -431,6 +439,7 @@ struct InnerView: View
         .cornerRadius(25)
         Button("Push data to SimtoonAPI")
         {
+            // debug printouts - these will obviously be removed after the development is finished
             print("---")
             print("")
             print(score.HRAvg)
